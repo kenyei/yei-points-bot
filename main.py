@@ -24,6 +24,14 @@ def supply_and_borrow(wallet: Account):
     print(f"=== Looping for {wallet.address} ===")
 
     bot = YeiPointBot(wallet.key)
+    current_emode = bot.get_user_emode()
+    print(f"Current eMode category: {current_emode}")
+
+    if current_emode == 0:  # eMode not enabled
+        print("eMode not enabled, enabling eMode category 2...")
+        bot.set_user_emode(2)
+    else:
+        print(f"eMode already enabled with category {current_emode}")
 
     sei_balance = bot.get_native_balance(wallet.address)
     wsei_balance = bot.get_wsei_balance()
