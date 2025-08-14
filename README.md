@@ -20,6 +20,7 @@ yei-points-bot/
 ├── abi.py           # 智能合約 ABI 定義
 ├── wallets.json     # 錢包配置檔案
 ├── schedule.json    # 執行排程檔案
+├── .env             # 環境變數設定檔案（需要自行建立）
 └── README.md        # 專案說明文件
 ```
 
@@ -32,9 +33,57 @@ yei-points-bot/
 uv sync
 ```
 
+## 環境變數設定
+
+本專案需要設定以下環境變數來連接到 Sei 區塊鏈和 YEI Finance 協議：
+
+### 必要環境變數
+
+在專案根目錄建立 `.env` 檔案，並設定以下環境變數：
+
+```bash
+# Sei 區塊鏈 RPC 端點
+RPC_URL=https://evm-rpc.sei-apis.com
+
+# YEI Finance 協議合約地址（請替換為實際地址）
+POOL_ADDRESS=0x_your_pool_contract_address_here
+WSEI_ADDRESS=0x_your_wsei_contract_address_here
+ATOKEN_ADDRESS=0x_your_atoken_contract_address_here
+DEBT_ADDRESS=0x_your_debt_token_contract_address_here
+```
+
+**設定步驟：**
+
+1. 複製上述內容到 `.env` 檔案
+2. 將 `0x_your_*_here` 替換為實際的合約地址
+3. 確認 RPC URL 可正常連接
+
+### 環境變數說明
+
+| 變數名稱         | 說明                             | 範例                           |
+| ---------------- | -------------------------------- | ------------------------------ |
+| `RPC_URL`        | Sei 區塊鏈的 RPC 端點 URL        | `https://evm-rpc.sei-apis.com` |
+| `POOL_ADDRESS`   | YEI Finance 的主要 Pool 合約地址 | `0x1234...`                    |
+| `WSEI_ADDRESS`   | Wrapped SEI (WSEI) 代幣合約地址  | `0x5678...`                    |
+| `ATOKEN_ADDRESS` | aWSEI 代幣合約地址（供應憑證）   | `0x9abc...`                    |
+| `DEBT_ADDRESS`   | 債務代幣合約地址（借貸憑證）     | `0xdef0...`                    |
+
+### 網路環境檔案
+
+專案支援多個網路環境，你可以根據需求建立對應的環境檔案：
+
+- `.env.sei` - Sei 主網環境設定
+- `.env.inj` - Injective 網路環境設定（如適用）
+
+**注意：** 請確保 `.env` 檔案已加入 `.gitignore`，避免敏感資訊被提交到版本控制。
+
 ## 使用方法
 
-### 1. 設定錢包檔案
+### 1. 設定環境變數
+
+首先建立 `.env` 檔案並設定必要的環境變數（參考上方環境變數設定章節）。
+
+### 2. 設定錢包檔案
 
 建立 `wallets.json` 檔案，包含你的錢包資訊：
 
@@ -51,7 +100,7 @@ uv sync
 ]
 ```
 
-### 2. 生成執行排程
+### 3. 生成執行排程
 
 使用 `schedule.py` 為每個錢包分配隨機執行時間：
 
@@ -62,11 +111,17 @@ python schedule.py --start 1754542179 --end 1754552179
 
 這個指令會讀取 `wallets.json` 中的錢包地址，為每個地址在指定的時間範圍內分配一個隨機時間戳記，並將結果儲存到 `schedule.json`。
 
-### 3. 執行主程式
+### 4. 執行主程式
 
-確保已設定好 `wallets.json` 和 `schedule.json` 後，執行主程式：
+確保已設定好環境變數、`wallets.json` 和 `schedule.json` 後，執行主程式：
 
 ```bash
+# SEI
+cp .env.sei .env
+python main.py
+
+# Injective
+cp .env.inj .env
 python main.py
 ```
 

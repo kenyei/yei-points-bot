@@ -1,18 +1,22 @@
+import os
 import random
 import time
 
+from dotenv import load_dotenv
 from eth_account import Account
 from web3 import Web3
 
 from abi import ERC20_ABI, POOL_ABI, WSEI_ABI
 
+load_dotenv()
+
 
 class YeiPointBot:
-    RPC_URL = "https://evm-rpc.sei-apis.com/?x-apikey=d0227c6f"
-    POOL_ADDRESS = "0x4a4d9abD36F923cBA0Af62A39C01dEC2944fb638"
-    WSEI_ADDRESS = "0xE30feDd158A2e3b13e9badaeABaFc5516e95e8C7"
-    ATOKEN_ADDRESS = "0x809FF4801aA5bDb33045d1fEC810D082490D63a4"
-    DEBT_ADDRESS = "0x648e683aaE7C18132564F8B48C625aE5038A9607"
+    RPC_URL = os.getenv("RPC_URL")
+    POOL_ADDRESS = os.getenv("POOL_ADDRESS")
+    WSEI_ADDRESS = os.getenv("WSEI_ADDRESS")
+    ATOKEN_ADDRESS = os.getenv("ATOKEN_ADDRESS")
+    DEBT_ADDRESS = os.getenv("DEBT_ADDRESS")
 
     def __init__(self, private_key):
         """
@@ -67,7 +71,7 @@ class YeiPointBot:
         return self.debt_contract.functions.balanceOf(self.account.address).call()
 
     def wrap_sei_to_wsei(self, amount):
-        txn = self.wsei_contract.functions.deposit(amount).build_transaction(
+        txn = self.wsei_contract.functions.deposit().build_transaction(
             {
                 "from": self.account.address,
                 "value": amount,

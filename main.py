@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import time
 
@@ -6,6 +7,11 @@ from eth_account import Account
 from web3 import Web3
 
 from bot import YeiPointBot
+
+MIN_HEALTH_FACTOR = float(os.getenv("MIN_HEALTH_FACTOR"))
+REMAINING_SEI_AMOUNT = int(float(os.getenv("REMAINING_SEI_AMOUNT")) * 1e18)
+MAX_LTV = float(os.getenv("MAX_LTV"))
+EMODE = int(os.getenv("EMODE"))
 
 
 def load_wallets() -> list:
@@ -24,12 +30,12 @@ def supply_and_borrow(wallet: Account):
     print(f"=== Looping for {wallet.address} ===")
 
     bot = YeiPointBot(wallet.key)
+
     current_emode = bot.get_user_emode()
     print(f"Current eMode category: {current_emode}")
-
-    if current_emode == 0:  # eMode not enabled
-        print("eMode not enabled, enabling eMode category 2...")
-        bot.set_user_emode(2)
+    if current_emode != EMODE:
+        print(f"enabling eMode category {EMODE}...")
+        bot.set_user_emode(EMODE)
     else:
         print(f"eMode already enabled with category {current_emode}")
 
@@ -38,9 +44,6 @@ def supply_and_borrow(wallet: Account):
 
     print(f"SEI: {Web3.from_wei(sei_balance, 'ether'):.6f} SEI")
     print(f"WSEI: {Web3.from_wei(wsei_balance, 'ether'):.6f} WSEI")
-
-    MIN_HEALTH_FACTOR = 1.1
-    REMAINING_SEI_AMOUNT = 10 * 1e18
 
     if sei_balance + wsei_balance > REMAINING_SEI_AMOUNT:
         if sei_balance > REMAINING_SEI_AMOUNT:
@@ -58,7 +61,7 @@ def supply_and_borrow(wallet: Account):
         debt_balance = bot.get_debt_balance()
         print(f"aWSEI: {Web3.from_wei(atoken_balance, 'ether'):.6f} aWSEI")
         print(f"debtWSEI: {Web3.from_wei(debt_balance, 'ether'):.6f} debtWSEI")
-        borrowable_amount = atoken_balance * 0.8 - debt_balance
+        borrowable_amount = atoken_balance * MAX_LTV - debt_balance
         borrowable_amount = int(borrowable_amount * 0.99)
         bot.borrow(bot.WSEI_ADDRESS, borrowable_amount)
         bot.supply(bot.WSEI_ADDRESS, borrowable_amount)
