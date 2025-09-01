@@ -249,6 +249,101 @@ class YeiPointBot:
             print(f"Borrow failed! Transaction hash: {tx_hash.hex()}")
         return receipt
 
+    def repay(self, token_address, amount, interest_rate_mode=2, on_behalf_of=None):
+        """
+        Repay borrowed tokens to Aave V3 Pool
+
+        Args:
+            token_address: Token contract address to repay
+            amount: Amount to repay (in wei). Use 2**256-1 to repay all debt
+            interest_rate_mode: 1 for stable, 2 for variable (default: 2)
+            on_behalf_of: Address whose debt to repay (default: caller)
+        """
+        if on_behalf_of is None:
+            on_behalf_of = self.account.address
+
+        # First approve token spending if amount is not max uint256
+        max_uint256 = 2**256 - 1
+        if amount != max_uint256:
+            print(f"Approving {amount} tokens for repayment...")
+            self.approve_token(token_address, amount)
+
+        # Build repay transaction
+        repay_txn = self.pool_contract.functions.repay(
+            Web3.to_checksum_address(token_address),
+            amount,
+            interest_rate_mode,
+            Web3.to_checksum_address(on_behalf_of),
+        ).build_transaction(
+            {
+                "from": self.account.address,
+                "nonce": self.w3.eth.get_transaction_count(self.account.address),
+                "gas": 300000,
+                "gasPrice": self.w3.eth.gas_price,
+            }
+        )
+
+        # Sign and send transaction
+        signed_txn = self.w3.eth.account.sign_transaction(repay_txn, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_txn.raw_transaction)
+        self.random_sleep()
+
+        # Wait for confirmation
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+        if receipt.status == 1:
+            if amount == max_uint256:
+                print(f"Full repayment successful! Transaction hash: {tx_hash.hex()}")
+            else:
+                print(f"Repayment successful! Transaction hash: {tx_hash.hex()}")
+        else:
+            print(f"Repayment failed! Transaction hash: {tx_hash.hex()}")
+        return receipt
+
+    def withdraw(self, token_address, amount, to=None):
+        """
+        Withdraw tokens from Aave V3 Pool
+
+        Args:
+            token_address: Token contract address to withdraw
+            amount: Amount to withdraw (in wei). Use 2**256-1 to withdraw all
+            to: Address to receive withdrawn tokens (default: caller)
+        """
+        if to is None:
+            to = self.account.address
+
+        # Build withdraw transaction
+        withdraw_txn = self.pool_contract.functions.withdraw(
+            Web3.to_checksum_address(token_address),
+            amount,
+            Web3.to_checksum_address(to),
+        ).build_transaction(
+            {
+                "from": self.account.address,
+                "nonce": self.w3.eth.get_transaction_count(self.account.address),
+                "gas": 300000,
+                "gasPrice": self.w3.eth.gas_price,
+            }
+        )
+
+        # Sign and send transaction
+        signed_txn = self.w3.eth.account.sign_transaction(
+            withdraw_txn, self.account.key
+        )
+        tx_hash = self.w3.eth.send_raw_transaction(signed_txn.raw_transaction)
+        self.random_sleep()
+
+        # Wait for confirmation
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+        if receipt.status == 1:
+            max_uint256 = 2**256 - 1
+            if amount == max_uint256:
+                print(f"Full withdrawal successful! Transaction hash: {tx_hash.hex()}")
+            else:
+                print(f"Withdrawal successful! Transaction hash: {tx_hash.hex()}")
+        else:
+            print(f"Withdrawal failed! Transaction hash: {tx_hash.hex()}")
+        return receipt
+
     def get_user_emode(self, user_address=None):
         """
         Get user's current eMode category

@@ -26,6 +26,29 @@ POOL_ABI = [
         "type": "function",
     },
     {
+        "inputs": [
+            {"internalType": "address", "name": "asset", "type": "address"},
+            {"internalType": "uint256", "name": "amount", "type": "uint256"},
+            {"internalType": "uint256", "name": "interestRateMode", "type": "uint256"},
+            {"internalType": "address", "name": "onBehalfOf", "type": "address"},
+        ],
+        "name": "repay",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "asset", "type": "address"},
+            {"internalType": "uint256", "name": "amount", "type": "uint256"},
+            {"internalType": "address", "name": "to", "type": "address"},
+        ],
+        "name": "withdraw",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
         "inputs": [{"internalType": "uint8", "name": "categoryId", "type": "uint8"}],
         "name": "setUserEMode",
         "outputs": [],
